@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            font-family: sans-serif;
+            background: #448;
+            color: white;
+            font-size: 150%;
+        }
+
+        #images {
+            margin-bottom: 20px;
+            width: 1024px;
+            height: 1024px;
+            position: relative;
+        }
+
+        #color_space {
+            width: 400px;
+            height: 400px;
+            margin: 20px;
+            position: relative;
+            background: conic-gradient(from 90deg, #0ff 0%, #00f 12.5%, #80f 25%, #f0f 37.5%, #f00 50%, #ff0 62.5%, #8f0 75%, #0f0 88%, #0ff 100%);
+            cursor: cell !important;
+        }
+
+        #color_space p, #value {
+          margin: 0;
+          text-shadow: 0 0 4px black;
+          z-index: 777;
+          position: absolute;
+        }
+
+        #value {
+          margin: 10px;
+          top: 0;
+          font-size: 32px;
+        }
+
+        #images, #color_space {
+          border: 2px solid rgba(255,255,255,0.8);
+          box-shadow: 0 0 50px rgba(0,0,0,0.5);
+          position: relative;
+        }
+
+        input {
+          max-width: 500px;
+        }
+    </style>
+</head>
+<body>
+<div style="display: flex; flex-direction: row; justify-content: center; align-items: center; width:100%;">
+  <div id="images">
+      <img id="original" src="correction0_0_0.jpg" style="position: absolute; z-index: 7777; display: none;">
+      <img id="image" src="correction0_0_0.jpg" style="display: block;">
+  </div>
+  <div style="flex-grow: 1">
+    <div id="value">Original SDXL Output</div>
+    <div style="display: flex; flex-direction: column; justify-content: center; align-items: center;">
+      <div style="text-align: center; width:100%">
+        Maximize<br>
+        <input id="m" type="range" step="25" min="0" max="100" value="0" id="m" oninput="changeM(this);" style="width: 100%">
+      </div>
+      <div style="text-align: center; width:100%">
+        Color balancing<br>
+        <input id="c" type="range" step="10" min="0" max="100" value="0" id="m" oninput="changeC(this);" style="width: 100%">
+      </div>
+      <div style="text-align: center; width:100%">
+        Outlier removal<br>
+        <input id="o" type="range" step="10" min="0" max="100" value="0" id="m" oninput="changeO(this);" style="width: 100%">
+      </div>
+      <button type="button" id="compare" onmousedown="compare('block')" onmouseup="compare('none')" style="font-size: 120%">
+        Compare to original
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+    // Get references to the elements
+    const imagesContainer = document.getElementById('images');
+    const colorSpace = document.getElementById('color_space');
+
+    let c = m = o = 0;
+    document.getElementById("c").value = 0;
+    document.getElementById("m").value = 0;
+    document.getElementById("o").value = 0;
+
+    // Function to update the displayed image based on mouse position
+    function updateImage(event) {
+      const containerRect = colorSpace.getBoundingClientRect();
+        const offsetX = event.clientX - containerRect.left;
+        const offsetY = event.clientY - containerRect.top;
+
+        const percentX = (offsetX / containerRect.width);
+        
+        // Adjust the calculation for percentY to scale it to the range [0, 1]
+        const percentY = 1 - (offsetY / containerRect.height);
+
+        // Convert percent values to the range [0, 100]
+        c = Math.round(percentX * 10) * 10;
+        g = Math.round(percentY * 10) * 10;
+
+        display();
+    }
+
+    function display() {
+      if(c == 0 && m == 0 && o == 0) {
+            document.getElementById("value").innerHTML = "Original SDXL output";
+        } else {
+            document.getElementById("value").innerHTML = `Maximize: ${m} Outlier removal: ${o} Color balancing: ${c}`;
+        }
+
+        document.getElementById("image").src = `correction${m}_${c}_${o}.jpg`;
+    }
+
+    function changeM(element) {
+        m = element.value;
+        display();
+    }
+
+    function changeC(element) {
+        c = element.value;
+        display();
+    }
+
+    function changeO(element) {
+        o = element.value;
+        display();
+    }
+
+    function compare(display) {
+      document.getElementById("original").style.display = display;
+    }
+
+    display();
+
+    // Attach the updateImage function to the mousemove event on the color_space div
+    colorSpace.addEventListener('mousemove', updateImage);
+</script>
+
+</body>
+</html>
